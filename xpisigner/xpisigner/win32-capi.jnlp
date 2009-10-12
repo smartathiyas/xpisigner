@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<jnlp spec="1.6+" codebase="http://xpi.multisigner.com" href="win32-capi.jnlp">
+    <information>
+        <title>Multisigner</title>
+        <vendor>Kevin O'Regan</vendor>
+        <icon href="http://xpi.multisigner.com/icon.png"/>
+        <description>Sign Firefix extensions using your keys from Windows 'Personal' certificate store.</description>
+        <homepage href="http://multisigner.com"/>
+        <offline-allowed/>
+    </information>
+    <security>
+        <all-permissions/>
+    </security>
+    <resources>
+        <j2se version="1.6+" href="http://java.sun.com/products/autodl/j2se"/>
+        <jar href="win32-capi.jar" main="true"/>
+    </resources>
+    <application-desc
+        main-class="org.oregan.gui.MultiSigner">
+    </application-desc>
+</jnlp>
+  

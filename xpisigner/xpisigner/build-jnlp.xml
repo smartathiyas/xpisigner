@@ -1,0 +1,37 @@
+<project name="xpisigner-capi-win" default="jar">
+
+    <property name="version" value="2.0alpha"/>
+    <property name="classes.dir" value="jnlp-classes"/>
+
+
+    <target name="clean">
+        <delete dir="${classes.dir}"/>
+    </target>
+
+    <target name="compile" depends="clean">
+        <mkdir dir="${classes.dir}"/>
+        <javac destdir="${classes.dir}" srcdir="src">
+            <include name="org/oregan/asn1/*.java"/>
+            <include name="org/oregan/gui/*.java"/>
+            <include name="org/oregan/gui/capi/*.java"/>
+        </javac>
+        <copy todir="${classes.dir}">
+            <fileset dir="src">
+                <include name="**/*.png"/>
+            </fileset>
+        </copy>
+    </target>
+
+    <target name="jar-zippy" depends="compile">
+        <jar destfile="win32-capi.jar">
+            <manifest>
+                <attribute name="Main-Class" value="org.oregan.gui.Multisigner"/>
+            </manifest>
+            <fileset dir="${classes.dir}">
+                <include name="org/oregan/**"/>
+            </fileset>
+        </jar>
+    </target>
+    <target name="jar" depends="jar-zippy"/>
+
+</project>
