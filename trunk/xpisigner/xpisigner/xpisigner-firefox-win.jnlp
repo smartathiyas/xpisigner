@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--<jnlp spec="1.6+" codebase="file:/koregan/XPISigner" href="xpisigner-online.jnlp">-->
+<jnlp spec="1.6+" codebase="http://o-regan.org" href="xpisigner-firefox-win.jnlp">
+    <information>
+        <title>XPI Signer</title>
+        <vendor>Kevin O'Regan</vendor>
+        <icon href="http://o-regan.org/icon.png"/>
+        <homepage href="http://o-regan.org"/>
+        <offline-allowed/>
+    </information>
+    <security>
+        <all-permissions/>
+    </security>
+    <resources>
+        <j2se version="1.6+" href="http://java.sun.com/products/autodl/j2se"/>
+        <jar href="xpisigner-firefox-win.jar" main="true"/>
+        <jar href="jss4.jar"/>
+        <nativelib href="firefox-win.jar"/>
+    </resources>
+    <application-desc
+        main-class="org.oregan.gui.MultiSigner">
+    </application-desc>
+</jnlp>
+  

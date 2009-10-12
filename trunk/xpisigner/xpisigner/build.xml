@@ -1,0 +1,267 @@
+<project name="xpisigner" default="package">
+
+    <property name="bclibdir" value="lib/bouncycastle.org"/>
+    <property name="mozilla.nss.dir" value="lib/mozilla-jss"/>
+    <property name="luna.dir" value="lib/Chrysalis"/>
+
+    <property name="version" value="2.01"/>
+
+
+    <target name="clean">
+        <delete dir="classes"/>
+        <delete dir="dist"/>
+
+    </target>
+
+    <target name="compile" depends="clean">
+        <mkdir dir="classes"/>
+        <javac destdir="classes" srcdir="src" debug="true">
+            <classpath>
+                <fileset dir="${bclibdir}">
+                    <include name="bcmail-jdk15-136.jar"/>
+                    <include name="bcprov-jdk15-136.jar"/>
+                </fileset>
+                <fileset dir="${mozilla.nss.dir}/win32">
+                    <include name="jss4.jar"/>
+                </fileset>
+                <fileset dir="${luna.dir}/">
+                    <include name="LunaJCASP.jar"/>
+                    <include name="LunaJCESP.jar"/>
+                </fileset>
+            </classpath>
+            <include name="org/oregan/xpi/*.java"/>
+            <include name="org/oregan/xpi/bc/*.java"/>
+            <!--<include name="org/oregan/xpi/jss/*.java"/>-->
+            <!--<include name="org/oregan/xpi/mscapi/*.java"/>-->
+            <include name="org/oregan/xpi/lunasa/*.java"/>
+            <include name="org/oregan/pfx/PFXUpdate.java"/>
+        </javac>
+        <!--<copy todir="classes">-->
+            <!--<fileset dir="src">-->
+                <!--<include name="firefox/**"/>-->
+            <!--</fileset>-->
+        <!--</copy>-->
+    </target>
+
+    <target name="jar-lunasa" depends="compile">
+           <jar destfile="xpi_hsm.jar">
+               <manifest>
+                   <attribute name="Main-Class" value="org.oregan.xpi.Main"/>
+                   <attribute name="Class-Path" value="bcprov-jdk15-136.jar  bcmail-jdk15-136.jar LunaJSASP.jar LunaJCESP.jar"/>
+               </manifest>
+               <fileset dir="classes">
+                   <include name="org/oregan/xpi/*.class"/>
+                   <include name="org/oregan/asn1/*.class"/>
+                   <include name="org/oregan/xpi/bc/*.class"/>
+                   <include name="org/oregan/xpi/lunasa/*.class"/>
+               </fileset>
+           </jar>
+       </target>
+
+
+
+    <target name="jar-bc" depends="compile">
+        <jar destfile="xpi.jar">
+            <manifest>
+                <attribute name="Main-Class" value="org.oregan.xpi.Main"/>
+                <attribute name="Class-Path" value="bcprov-jdk15-136.jar  bcmail-jdk15-136.jar"/>
+            </manifest>
+            <fileset dir="classes">
+                <include name="org/oregan/xpi/*.class"/>
+                <include name="org/oregan/xpi/bc/*.class"/>
+                <include name="org/oregan/xpi/lunasa/*.class"/>
+            </fileset>
+        </jar>
+    </target>
+    <target name="jar-bc-pfx" depends="compile">
+        <jar destfile="pfxupdate.jar">
+            <manifest>
+                <attribute name="Main-Class" value="org.oregan.pfx.PFXUpdate"/>
+                <attribute name="Class-Path" value="bcprov-jdk15-136.jar  bcmail-jdk15-136.jar"/>
+            </manifest>
+            <fileset dir="classes">
+                <include name="org/oregan/xpi/Utils.class"/>
+                <include name="org/oregan/pfx/*.class"/>
+                <include name="firefox/**"/>
+            </fileset>
+        </jar>
+    </target>
+
+    <target name="jar-jss" depends="compile">
+        <jar destfile="xpi-native.jar">
+            <manifest>
+                <attribute name="Main-Class" value="org.oregan.xpi.Main"/>
+                <attribute name="Class-Path" value="jss4.jar"/>
+            </manifest>
+            <fileset dir="classes">
+                <include name="org/oregan/xpi/*.class"/>
+                <include name="org/oregan/xpi/jss/*.class"/>
+            </fileset>
+        </jar>
+
+
+    </target>
+    <target name="jar" depends="jar-lunasa,jar-bc,jar-jss,jar-bc-pfx"/>
+
+    <target name="package" depends="jar">
+
+        <mkdir dir="dist"/>
+        <mkdir dir="dist/java"/>
+        <mkdir dir="dist/java/hsm"/>
+        <mkdir dir="dist/native/win32"/>
+        <mkdir dir="dist/native/linux26"/>
+
+        <copy file="xpi.jar" todir="dist/java/"/>
+        <copy file="xpi_hsm.jar"  tofile="dist/java/hsm/xpi.jar"/>
+        <copy file="pfxupdate.jar" todir="dist/java/"/>
+        <copy todir="dist/java">
+            <fileset dir="${bclibdir}">
+                <include name="bcmail-jdk15-136.jar"/>
+                <include name="bcprov-jdk15-136.jar"/>
+                <include name="LICENSE.html"/>
+            </fileset>
+            <!--<fileset dir="${luna.dir}">-->
+                <!--<include name="*.jar"/>-->
+            <!--</fileset>-->
+
+            <fileset dir=".">
+                <include name="readme.txt"/>
+                <include name="xpisigner.cmd"/>
+                <include name="xpisigner.sh"/>
+                <include name="dozip.sh"/>
+            </fileset>
+        </copy>
+
+        <copy todir="dist/java/hsm">
+            <fileset dir="${bclibdir}">
+                <include name="bcmail-jdk15-136.jar"/>
+                <include name="bcprov-jdk15-136.jar"/>
+                <include name="LICENSE.html"/>
+            </fileset>
+
+            <fileset dir="${luna.dir}">
+                <include name="*.jar"/>
+            </fileset>
+
+            <fileset dir=".">
+                <include name="readme.txt"/>
+                <include name="xpisigner.cmd"/>
+                <include name="xpisigner.sh"/>
+                <include name="dozip.sh"/>
+            </fileset>
+        </copy>
+
+        <fixcrlf srcdir="dist/java/" includes="*.sh" eol="unix"/>
+        <fixcrlf srcdir="dist/java/hsm/" includes="*.sh" eol="unix"/>
+
+        <chmod perm="ugo+rx">
+            <fileset dir="dist/java/hsm/">
+                <include name="*.sh"/>
+            </fileset>
+        </chmod>
+        
+        <zip destfile="dist/xpisigner${version}.zip">
+            <zipfileset dir="dist/java">
+                <include name="xpi.jar"/>
+                <include name="dozip.sh"/>
+                <include name="readme.txt"/>
+                <include name="xpisigner.cmd"/>
+                <include name="xpisigner.sh"/>
+                <include name="bcprov-jdk15-136.jar"/>
+                <include name="bcmail-jdk15-136.jar"/>
+            </zipfileset>
+        </zip>
+
+
+
+        <exec executable="zip" dir="dist/java/hsm/">
+            <arg line="-r -D ../../hsm_xpisigner2.0.zip ."/>
+        </exec>
+
+
+        <zip destfile="dist/xpisigner_lunasa${version}.zip">
+
+            <zipfileset dir="dist/java/hsm">
+                <include name="xpi.jar"/>
+            </zipfileset>
+            <zipfileset dir="dist/java">
+                <!--<include name="xpi.jar"/>-->
+                <include name="dozip.sh"/>
+                <include name="readme.txt"/>
+                <include name="xpisigner.cmd"/>
+                <include name="xpisigner.sh"/>
+                <include name="bcprov-jdk15-136.jar"/>
+                <include name="bcmail-jdk15-136.jar"/>
+                <include name="LunaJCASP.jar"/>
+                <include name="LunaJCESP.jar"/>
+            </zipfileset>
+        </zip>
+
+        <zip destfile="dist/pfxupdate${version}.zip">
+            <zipfileset dir="dist/java">
+                <include name="pfxupdate.jar"/>
+                <include name="readme.txt"/>
+                <include name="pfxupdate.cmd"/>
+                <include name="bcprov-jdk15-136.jar"/>
+                <include name="bcmail-jdk15-136.jar"/>
+            </zipfileset>
+        </zip>
+
+
+        <copy file="xpi-native.jar" tofile="dist/native/win32/xpi.jar"/>
+        <copy file="xpi-native.jar" tofile="dist/native/linux26/xpi.jar"/>
+
+        <copy todir="dist/native/linux26">
+            <fileset dir="${mozilla.nss.dir}/linux26">
+                <include name="*.jar"/>
+                <include name="*.so"/>
+            </fileset>
+            <fileset dir=".">
+                <include name="readme.txt"/>
+                <include name="xpisigner.jss.sh"/>
+            </fileset>
+        </copy>
+        <copy todir="dist/native/win32">
+            <fileset dir="${mozilla.nss.dir}/win32">
+                <include name="*.jar"/>
+                <include name="*.dll"/>
+            </fileset>
+            <fileset dir=".">
+                <include name="readme.txt"/>
+                <include name="xpisigner.jss.cmd"/>
+            </fileset>
+        </copy>
+        <move file="dist/native/linux26/xpisigner.jss.sh" tofile="dist/native/linux26/xpisigner.sh"/>
+
+        <fixcrlf srcdir="dist/native/linux26" includes="*.sh" eol="unix"/>
+        <fixcrlf srcdir="dist/native/linux26" includes="readme.txt" eol="unix"/>
+
+
+        <zip destfile="dist/xpisigner${version}.linux_x86.zip">
+            <zipfileset dir="dist/native/linux26">
+                <include name="xpi.jar"/>
+                <include name="readme.txt"/>
+                <include name="xpisigner.sh"/>
+                <include name="*.so"/>
+                <include name="jss4.jar"/>
+            </zipfileset>
+        </zip>
+
+        <move file="dist/native/win32/xpisigner.jss.cmd" tofile="dist/native/win32/xpisigner.cmd"/>
+
+        <fixcrlf srcdir="dist/native/win32" includes="*.sh" eol="crlf"/>
+        <fixcrlf srcdir="dist/native/win32" includes="readme.txt" eol="crlf"/>
+
+        <zip destfile="dist/xpisigner${version}.win32.zip">
+            <zipfileset dir="dist/native/win32/">
+                <include name="xpi.jar"/>
+                <include name="readme.txt"/>
+                <include name="xpisigner.cmd"/>
+                <include name="*.dll"/>
+                <include name="jss4.jar"/>
+            </zipfileset>
+        </zip>
+
+
+    </target>
+</project>
